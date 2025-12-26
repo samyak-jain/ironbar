@@ -2,12 +2,14 @@ mod r#box;
 mod button;
 mod image;
 mod label;
+mod overlay;
 mod progress;
 mod slider;
 
 use self::r#box::BoxWidget;
 use self::image::ImageWidget;
 use self::label::LabelWidget;
+use self::overlay::OverlayWidget;
 use self::slider::SliderWidget;
 use crate::channels::AsyncSenderExt;
 use crate::config::{CommonConfig, ModuleConfig};
@@ -85,6 +87,8 @@ pub enum Widget {
     Slider(SliderWidget),
     /// A progress bar.
     Progress(ProgressWidget),
+    /// An overlay container to stack widgets on top of each other.
+    Overlay(OverlayWidget),
 }
 
 #[derive(Clone)]
@@ -171,6 +175,7 @@ impl Widget {
             Self::Image(widget) => create!(widget),
             Self::Slider(widget) => create!(widget),
             Self::Progress(widget) => create!(widget),
+            Self::Overlay(widget) => create!(widget),
         };
 
         parent.append(&event_box);

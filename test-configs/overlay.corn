@@ -1,0 +1,25 @@
+{
+    position = "top"
+    height = 50
+    center = [
+        {
+            type = "custom"
+            bar = [
+                {
+                    type = "overlay"
+                    name = "notification-btn"
+                    widgets = [
+                        {
+                            type = "label"
+                            label = "testing"
+                        }
+                        {
+                            type = "label"
+                            label = "abc"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

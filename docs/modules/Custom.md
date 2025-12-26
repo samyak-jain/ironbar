@@ -33,11 +33,11 @@ You can think of these like HTML elements and their attributes.
 Every widget has the following options available; `type` is mandatory. 
 You can also add common [module-level options](https://github.com/JakeStanger/ironbar/wiki/configuration-guide#32-module-level-options) on a widget.
 
-| Name    | Type                                                                          | Default | Description                   |
-|---------|-------------------------------------------------------------------------------|---------|-------------------------------|
-| `type`  | `'box'` or `'label'` or `'button'` or `'image'` or `'slider'` or `'progress'` | `null`  | Type of GTK widget to create. |
-| `name`  | `string`                                                                      | `null`  | Widget name.                  |
-| `class` | `string`                                                                      | `null`  | Widget class name.            |
+| Name    | Type                                                                                        | Default | Description                   |
+|---------|--------------------------------------------------------------------------------------------|---------|-------------------------------|
+| `type`  | `'box'` or `'label'` or `'button'` or `'image'` or `'slider'` or `'progress'` or `'overlay'` | `null`  | Type of GTK widget to create. |
+| `name`  | `string`                                                                                   | `null`  | Widget name.                  |
+| `class` | `string`                                                                                   | `null`  | Widget class name.            |
 
 #### Box
 
@@ -161,6 +161,50 @@ $progress = {
             length = 200
         }
     ] 
+}
+```
+
+#### Overlay
+
+A container to stack widgets on top of each other. Useful for badges, counts, or decorative overlays.
+
+> Type: `overlay`
+
+| Name      | Type                                               | Default | Description                                                              |
+|-----------|----------------------------------------------------|---------|--------------------------------------------------------------------------|
+| `widgets` | `OverlayLayer[]`                                   | `[]`    | Widgets to stack. First widget is the base, rest are overlays on top.   |
+| `halign`  | `'start'` or `'center'` or `'end'` or `'fill'`     | `'fill'` | The horizontal alignment of the overlay within its parent container.     |
+| `valign`  | `'start'` or `'center'` or `'end'` or `'fill'`     | `'fill'` | The vertical alignment of the overlay within its parent container.       |
+
+Each `OverlayLayer` has the following options:
+
+| Name           | Type                                               | Default | Description                                                                    |
+|----------------|----------------------------------------------------|---------|--------------------------------------------------------------------------------|
+| *(widget)*     | `Module or Widget`                                 | -       | The widget or module to add (flattened, same as other widget lists).          |
+| `halign`       | `'start'` or `'center'` or `'end'` or `'fill'`     | `'center'` | Horizontal alignment of this layer within the overlay.                      |
+| `valign`       | `'start'` or `'center'` or `'end'` or `'fill'`     | `'center'` | Vertical alignment of this layer within the overlay.                        |
+| `pass_through` | `boolean`                                          | `true`  | *(Reserved for GTK 4.14+)* Whether mouse events pass through to widgets below. |
+| `measure`      | `boolean`                                          | `false` | *(Reserved for GTK 4.14+)* Whether this overlay affects container size.       |
+
+The example below shows a button with a notification count badge in the top-right corner:
+
+```corn
+{
+    type = "overlay"
+    widgets = [
+        {
+            type = "button"
+            label = "🔔"
+            on_click = "!notify-send 'Clicked!'"
+        }
+        {
+            type = "label"
+            label = "3"
+            class = "badge"
+            halign = "end"
+            valign = "start"
+        }
+    ]
 }
 ```
 
