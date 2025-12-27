@@ -13,6 +13,7 @@ use self::overlay::OverlayWidget;
 use self::slider::SliderWidget;
 use crate::channels::AsyncSenderExt;
 use crate::config::{CommonConfig, ModuleConfig};
+use crate::gtk_helpers::IronbarContainer;
 use crate::modules::custom::button::ButtonWidget;
 use crate::modules::custom::progress::ProgressWidget;
 use crate::modules::{
@@ -143,12 +144,21 @@ pub fn set_length<W: WidgetExt>(widget: &W, length: i32, bar_orientation: Orient
 }
 
 impl WidgetOrModule {
-    fn add_to(self, parent: &gtk::Box, context: &CustomWidgetContext, common: CommonConfig) {
+    fn add_to(
+        self,
+        parent: IronbarContainer,
+        context: &CustomWidgetContext,
+        common: CommonConfig,
+    ) -> Option<gtk::Widget> {
         match self {
-            WidgetOrModule::Widget(widget) => widget.add_to(parent, context, common),
+            WidgetOrModule::Widget(widget) => Some(widget.add_to(parent, context, common)),
             WidgetOrModule::Module(config) => {
-                if let Err(err) = config.create(&context.module_factory, parent, context.info) {
-                    error!("{err:?}");
+                match config.create(&context.module_factory, parent, context.info) {
+                    Ok(module) => Some(module.revealer),
+                    Err(err) => {
+                        error!("{err:?}");
+                        None
+                    }
                 }
             }
         }
@@ -157,7 +167,12 @@ impl WidgetOrModule {
 
 impl Widget {
     /// Creates this widget and adds it to the parent container
-    fn add_to(self, parent: &gtk::Box, context: &CustomWidgetContext, common: CommonConfig) {
+    fn add_to(
+        self,
+        parent: IronbarContainer,
+        context: &CustomWidgetContext,
+        common: CommonConfig,
+    ) -> gtk::Widget {
         macro_rules! create {
             ($widget:expr) => {
                 add_events(
@@ -179,6 +194,7 @@ impl Widget {
         };
 
         parent.append(&event_box);
+        event_box.upcast()
     }
 }
 
@@ -252,9 +268,11 @@ impl Module<gtk::Box> for CustomModule {
         };
 
         self.bar.clone().into_iter().for_each(|widget| {
-            widget
-                .widget
-                .add_to(&container, &custom_context, widget.common);
+            widget.widget.add_to(
+                IronbarContainer::Box(&container),
+                &custom_context,
+                widget.common,
+            );
         });
 
         for button in popup_buttons.borrow().iter() {
@@ -303,9 +321,11 @@ impl Module<gtk::Box> for CustomModule {
             };
 
             for widget in popup {
-                widget
-                    .widget
-                    .add_to(&container, &custom_context, widget.common);
+                widget.widget.add_to(
+                    IronbarContainer::Box(&container),
+                    &custom_context,
+                    widget.common,
+                );
             }
         }
 

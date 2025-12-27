@@ -1,6 +1,7 @@
 use super::{CustomWidget, CustomWidgetContext};
 use crate::build;
 use crate::config::ModuleOrientation;
+use crate::gtk_helpers::IronbarContainer;
 use crate::modules::custom::WidgetConfig;
 use gtk::prelude::*;
 use serde::Deserialize;
@@ -79,7 +80,9 @@ impl CustomWidget for BoxWidget {
 
         if let Some(widgets) = self.widgets {
             for widget in widgets {
-                widget.widget.add_to(&container, &context, widget.common);
+                widget
+                    .widget
+                    .add_to(IronbarContainer::Box(&container), &context, widget.common);
             }
         }
 

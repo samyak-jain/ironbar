@@ -1,4 +1,5 @@
 use crate::config::{BarConfig, BarPosition, MarginConfig, ModuleConfig};
+use crate::gtk_helpers::IronbarContainer;
 use crate::modules::{BarModuleFactory, ModuleInfo, ModuleLocation, ModuleRef};
 use crate::popup::Popup;
 use crate::{Ironbar, rc_mut};
@@ -544,7 +545,7 @@ fn add_modules(
     let mut results = vec![];
     for config in modules {
         let name = config.name();
-        match config.create(&module_factory, content, info) {
+        match config.create(&module_factory, IronbarContainer::Box(content), info) {
             Ok(res) => results.push(res),
             Err(err) => error!("failed to create module {name}: {:?}", err),
         }

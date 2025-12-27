@@ -7,7 +7,7 @@ use crate::build;
 use crate::channels::AsyncSenderExt;
 use crate::config::LayoutConfig;
 use crate::dynamic_value::dynamic_string;
-use crate::gtk_helpers::IronbarLabelExt;
+use crate::gtk_helpers::{IronbarContainer, IronbarLabelExt};
 use crate::modules::PopupButton;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -59,7 +59,7 @@ impl CustomWidget for ButtonWidget {
             let container = gtk::Box::new(self.layout.orientation(context.info), 0);
 
             for widget in widgets {
-                widget.widget.add_to(&container, &context, widget.common);
+                widget.widget.add_to(IronbarContainer::Box(&container), &context, widget.common);
             }
 
             button.set_child(Some(&container));

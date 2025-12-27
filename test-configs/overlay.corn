@@ -1,25 +1,54 @@
 {
     position = "top"
     height = 50
+
     center = [
+        // Notifications overlay example
         {
             type = "custom"
             bar = [
                 {
                     type = "overlay"
-                    name = "notification-btn"
-                    widgets = [
+                    class = "notifications"
+                    child = {
+                        type = "button"
+                        class = "button"
+                        label = "󰍥"
+                        on_click = "!swaync-client -t"
+                    }
+                    overlays = [
                         {
                             type = "label"
-                            label = "testing"
+                            label = "<span size='small'>3</span>"
+                            halign = "end"
+                            valign = "start"
+                            pass_through = true
                         }
+                    ]
+                }
+
+                // Mic with recording indicator example
+                {
+                    type = "overlay"
+                    child = {
+                        type = "label"
+                        label = "🎤 "
+                    }
+                    overlays = [
                         {
                             type = "label"
-                            label = "abc"
+                            label = "●"
+                            halign = "end"
+                            valign = "start"
+                            pass_through = true
                         }
                     ]
                 }
             ]
         }
+    ]
+
+    end = [
+        { type = "clock" }
     ]
 }

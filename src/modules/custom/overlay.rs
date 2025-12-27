@@ -1,5 +1,6 @@
 use super::{CustomWidget, CustomWidgetContext, WidgetConfig};
 use crate::build;
+use crate::gtk_helpers::IronbarContainer;
 use crate::modules::custom::r#box::ModuleAlignment;
 use gtk::prelude::*;
 use serde::Deserialize;
@@ -29,12 +30,17 @@ pub struct OverlayWidget {
     /// **Default**: `fill`
     valign: Option<ModuleAlignment>,
 
+    /// The child widget that is at the base of this overlay.
+    /// Any overlays you add are stacked on top of this widget.
+    /// This is a required field.
+    child: Box<WidgetConfig>,
+
     /// Widgets to add to this overlay.
     /// The first widget is the base (determines sizing),
     /// subsequent widgets are overlays stacked on top.
     ///
     /// **Default**: `[]`
-    widgets: Vec<OverlayLayer>,
+    overlays: Vec<OverlayLayer>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -44,50 +50,23 @@ pub struct OverlayLayer {
     #[serde(flatten)]
     widget: WidgetConfig,
 
-    /// Horizontal alignment of this overlay layer.
+    /// Horizontal alignment of this overlay layer within the overlay.
     ///
     /// **Valid options**: `start`, `center`, `end`, `fill`
-    /// **Default**: `center`
-    #[serde(default = "default_layer_halign")]
-    halign: ModuleAlignment,
+    /// **Default**: `fill`
+    halign: Option<ModuleAlignment>,
 
-    /// Vertical alignment of this overlay layer.
+    /// Vertical alignment of this overlay layer within the overlay.
     ///
     /// **Valid options**: `start`, `center`, `end`, `fill`
-    /// **Default**: `center`
-    #[serde(default = "default_layer_valign")]
-    valign: ModuleAlignment,
+    /// **Default**: `fill`
+    valign: Option<ModuleAlignment>,
 
     /// Whether mouse events should pass through this overlay to widgets below.
     /// Set to `false` for interactive overlays (buttons/controls).
     ///
-    /// Note: This feature requires GTK 4.14+ and is currently not available.
-    ///
     /// **Default**: `true`
-    #[serde(default = "default_pass_through")]
-    #[allow(dead_code)]
-    pass_through: bool,
-
-    /// Whether this overlay should affect the size of the container.
-    ///
-    /// Note: This feature requires GTK 4.14+ and is currently not available.
-    ///
-    /// **Default**: `false`
-    #[serde(default)]
-    #[allow(dead_code)]
-    measure: bool,
-}
-
-fn default_layer_halign() -> ModuleAlignment {
-    ModuleAlignment::Center
-}
-
-fn default_layer_valign() -> ModuleAlignment {
-    ModuleAlignment::Center
-}
-
-fn default_pass_through() -> bool {
-    true
+    pass_through: Option<bool>,
 }
 
 impl CustomWidget for OverlayWidget {
@@ -104,57 +83,31 @@ impl CustomWidget for OverlayWidget {
             overlay.set_valign(valign.into());
         }
 
-        // Process widgets: first is the base child, rest are overlays
-        let mut widgets = self.widgets.into_iter();
+        self.child.widget.add_to(
+            IronbarContainer::Overlay(&overlay),
+            &context,
+            self.child.common,
+        );
 
-        // Set the base child (first widget)
-        if let Some(first_layer) = widgets.next() {
-            let base_widget = create_layer_widget(&first_layer, &context, true);
-            overlay.set_child(Some(&base_widget));
-        }
-
-        // Add remaining widgets as overlays
-        for layer in widgets {
-            let layer_widget = create_layer_widget(&layer, &context, false);
-
-            // Apply alignment to the layer widget
-            layer_widget.set_halign(layer.halign.into());
-            layer_widget.set_valign(layer.valign.into());
-
-            // Configure overlay-specific properties
-            overlay.add_overlay(&layer_widget);
-
-            // Note: set_overlay_pass_through and set_measure_overlay may not be available
-            // in GTK 4.12. These methods were added in later versions of GTK4.
-            // For now, overlays will always pass through events (default GTK behavior)
-            // and won't affect container measurements.
+        for overlay_item in self.overlays {
+            let overlay_passthrough = overlay_item.pass_through.unwrap_or(true);
+            if let Some(widget) = overlay_item.widget.widget.add_to(
+                IronbarContainer::Overlay(&overlay),
+                &context,
+                overlay_item.widget.common,
+            ) {
+                if let Some(halign) = overlay_item.halign {
+                    widget.set_halign(halign.into());
+                }
+                if let Some(valign) = overlay_item.valign {
+                    widget.set_valign(valign.into());
+                }
+                if overlay_passthrough {
+                    widget.set_can_target(false);
+                }
+            }
         }
 
         overlay
     }
-}
-
-/// Creates a widget for an overlay layer.
-/// This handles both custom widgets and native modules.
-fn create_layer_widget(
-    layer: &OverlayLayer,
-    context: &CustomWidgetContext,
-    _is_base: bool,
-) -> gtk::Widget {
-    // For the base layer, we add the widget directly to get proper sizing
-    // For overlay layers, we also add them directly but with overlay properties
-
-    // We need to create a temporary container to capture the widget
-    let temp_container = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-
-    layer
-        .widget
-        .clone()
-        .widget
-        .add_to(&temp_container, context, layer.widget.common.clone());
-
-    // Get the first (and should be only) child from the temp container
-    temp_container
-        .first_child()
-        .expect("Layer widget should have created a child")
 }

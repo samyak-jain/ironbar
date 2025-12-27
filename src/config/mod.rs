@@ -5,6 +5,7 @@ mod layout;
 mod marquee;
 mod truncate;
 
+use crate::gtk_helpers::IronbarContainer;
 #[cfg(feature = "battery")]
 use crate::modules::battery::BatteryModule;
 #[cfg(feature = "bindmode")]
@@ -158,7 +159,7 @@ impl ModuleConfig {
     pub fn create(
         self,
         module_factory: &AnyModuleFactory,
-        container: &gtk::Box,
+        container: IronbarContainer,
         info: &ModuleInfo,
     ) -> Result<ModuleRef> {
         macro_rules! create {

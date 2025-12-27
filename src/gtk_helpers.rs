@@ -474,3 +474,20 @@ impl MarqueeInner {
         ControlFlow::Continue
     }
 }
+
+pub enum IronbarContainer<'a> {
+    Box(&'a gtk::Box),
+    Overlay(&'a gtk::Overlay),
+}
+
+impl<'a> IronbarContainer<'a> {
+    pub fn append(&self, child: &impl IsA<Widget>) {
+        match self {
+            IronbarContainer::Box(gtk_box) => gtk_box.append(child),
+            IronbarContainer::Overlay(overlay) => match overlay.child() {
+                Some(_) => overlay.add_overlay(child),
+                None => overlay.set_child(Some(child)),
+            },
+        }
+    }
+}

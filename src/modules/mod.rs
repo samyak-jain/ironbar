@@ -7,7 +7,7 @@ use crate::bar::Bar;
 use crate::channels::{MpscReceiverExt, SyncSenderExt};
 use crate::clients::{ClientResult, ProvidesClient, ProvidesFallibleClient};
 use crate::config::{BarPosition, CommonConfig, TransitionType};
-use crate::gtk_helpers::IronbarGtkExt;
+use crate::gtk_helpers::{IronbarContainer, IronbarGtkExt};
 use crate::popup::{ButtonFinder, Popup};
 use color_eyre::Result;
 use gtk::gdk::Monitor;
@@ -154,6 +154,7 @@ pub struct ModuleRef {
     pub id: usize,
     pub name: String,
     pub root_widget: Widget,
+    pub revealer: Widget,
     pub popup: Option<ModulePopupParts>,
 }
 
@@ -321,7 +322,7 @@ pub trait ModuleFactory {
     fn create<TModule, TWidget, TSend, TRev>(
         &self,
         mut module: TModule,
-        container: &gtk::Box,
+        container: IronbarContainer,
         info: &ModuleInfo,
     ) -> Result<ModuleRef>
     where
@@ -386,6 +387,7 @@ pub trait ModuleFactory {
             id,
             name: instance_name,
             root_widget: module_parts.widget.upcast(),
+            revealer: revealer.upcast(),
             popup: module_parts.popup,
         })
     }
