@@ -170,33 +170,33 @@ A container to stack widgets on top of each other. Useful for badges, counts, or
 
 > Type: `overlay`
 
-| Name      | Type                                               | Default | Description                                                              |
-|-----------|----------------------------------------------------|---------|--------------------------------------------------------------------------|
-| `widgets` | `OverlayLayer[]`                                   | `[]`    | Widgets to stack. First widget is the base, rest are overlays on top.   |
-| `halign`  | `'start'` or `'center'` or `'end'` or `'fill'`     | `'fill'` | The horizontal alignment of the overlay within its parent container.     |
-| `valign`  | `'start'` or `'center'` or `'end'` or `'fill'`     | `'fill'` | The vertical alignment of the overlay within its parent container.       |
+| Name       | Type                                               | Default  | Description                                                              |
+|------------|----------------------------------------------------|----------|--------------------------------------------------------------------------|
+| `child`    | `Module or Widget`                                 | -        | The base widget that determines the overlay's size. Required.            |
+| `overlays` | `OverlayLayer[]`                                   | `[]`     | Widgets to stack on top of the base child.                               |
+| `halign`   | `'start'` or `'center'` or `'end'` or `'fill'`     | `'fill'` | The horizontal alignment of the overlay within its parent container.     |
+| `valign`   | `'start'` or `'center'` or `'end'` or `'fill'`     | `'fill'` | The vertical alignment of the overlay within its parent container.       |
 
 Each `OverlayLayer` has the following options:
 
-| Name           | Type                                               | Default | Description                                                                    |
-|----------------|----------------------------------------------------|---------|--------------------------------------------------------------------------------|
-| *(widget)*     | `Module or Widget`                                 | -       | The widget or module to add (flattened, same as other widget lists).          |
-| `halign`       | `'start'` or `'center'` or `'end'` or `'fill'`     | `'center'` | Horizontal alignment of this layer within the overlay.                      |
-| `valign`       | `'start'` or `'center'` or `'end'` or `'fill'`     | `'center'` | Vertical alignment of this layer within the overlay.                        |
-| `pass_through` | `boolean`                                          | `true`  | *(Reserved for GTK 4.14+)* Whether mouse events pass through to widgets below. |
-| `measure`      | `boolean`                                          | `false` | *(Reserved for GTK 4.14+)* Whether this overlay affects container size.       |
+| Name           | Type                                               | Default  | Description                                                                    |
+|----------------|----------------------------------------------------|----------|--------------------------------------------------------------------------------|
+| *(widget)*     | `Module or Widget`                                 | -        | The widget or module to add (flattened, same as other widget lists).          |
+| `halign`       | `'start'` or `'center'` or `'end'` or `'fill'`     | `'fill'` | Horizontal alignment of this layer within the overlay.                         |
+| `valign`       | `'start'` or `'center'` or `'end'` or `'fill'`     | `'fill'` | Vertical alignment of this layer within the overlay.                           |
+| `pass_through` | `boolean`                                          | `true`   | Whether mouse events pass through to widgets below. Set to `false` for interactive overlays. |
 
 The example below shows a button with a notification count badge in the top-right corner:
 
 ```corn
 {
     type = "overlay"
-    widgets = [
-        {
-            type = "button"
-            label = "🔔"
-            on_click = "!notify-send 'Clicked!'"
-        }
+    child = {
+        type = "button"
+        label = "🔔"
+        on_click = "!notify-send 'Clicked!'"
+    }
+    overlays = [
         {
             type = "label"
             label = "3"
